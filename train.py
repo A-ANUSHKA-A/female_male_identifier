@@ -11,170 +11,214 @@ import numpy as np
 from PIL import Image
 import joblib
 
-# ----------------------------
-# Page Config
-# ----------------------------
+# -----------------------------------
+# Page Configuration
+# -----------------------------------
+
 st.set_page_config(
     page_title="Male vs Female Classifier",
-    page_icon="👤",
-    layout="centered"
+    page_icon="🤖",
+    layout="wide"
 )
 
-# ----------------------------
+# -----------------------------------
 # Custom CSS
-# ----------------------------
+# -----------------------------------
+
 st.markdown("""
 <style>
 
-.main {
-    background-color: #0f172a;
+html, body, [class*="css"]{
+    font-family: 'Segoe UI';
 }
 
-h1{
-    text-align:center;
+.main{
+    background:#0E1117;
 }
 
-.big-font{
-    font-size:18px !important;
+.title{
     text-align:center;
-    color:#b8c1ec;
+    font-size:55px;
+    font-weight:800;
+    background: linear-gradient(90deg,#00DBDE,#FC00FF);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
 }
 
-.prediction{
-    padding:18px;
-    border-radius:12px;
+.subtitle{
     text-align:center;
-    font-size:28px;
-    font-weight:bold;
-    margin-top:15px;
+    color:#BFBFBF;
+    font-size:20px;
+    margin-bottom:25px;
+}
+
+.card{
+
+background:#1A1D24;
+
+padding:25px;
+
+border-radius:20px;
+
+box-shadow:0px 0px 15px rgba(255,255,255,0.08);
+
 }
 
 .footer{
-    text-align:center;
-    color:gray;
-    margin-top:40px;
+
+text-align:center;
+
+margin-top:50px;
+
+color:gray;
+
+font-size:15px;
+
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ----------------------------
+# -----------------------------------
 # Sidebar
-# ----------------------------
-st.sidebar.title("📌 Project Info")
+# -----------------------------------
 
-st.sidebar.info("""
-### Male vs Female Classifier
+st.sidebar.title("📌 Project Information")
 
-**Model:** Logistic Regression
+st.sidebar.markdown("""
+### 👤 Male vs Female Classifier
 
-**Image Size:** 64 × 64
+**Algorithm**
+- Logistic Regression
 
-**Framework:** Streamlit
-
-**Libraries Used**
+**Libraries**
+- Streamlit
 - NumPy
 - Pillow
-- Scikit-learn
+- Scikit-Learn
 - Joblib
 
-Built during Summer Training 🚀
+**Image Size**
+64 × 64
+
+---
+
+Built as part of my Machine Learning Summer Training 🚀
 """)
 
-# ----------------------------
+# -----------------------------------
 # Load Model
-# ----------------------------
+# -----------------------------------
+
 model = joblib.load("male_female_model.pkl")
 
 IMG_SIZE = 64
 
-# ----------------------------
+# -----------------------------------
 # Header
-# ----------------------------
-st.markdown(
-    "<h1>👤 Male vs Female Image Classifier</h1>",
-    unsafe_allow_html=True,
-)
+# -----------------------------------
+
+st.markdown('<div class="title">🤖 Male vs Female Classifier</div>',
+unsafe_allow_html=True)
 
 st.markdown(
-    "<p class='big-font'>Upload a face image and let the Machine Learning model predict the gender.</p>",
-    unsafe_allow_html=True,
+'<div class="subtitle">Upload an image and let Machine Learning make a prediction.</div>',
+unsafe_allow_html=True
 )
 
 st.divider()
 
-# ----------------------------
+# -----------------------------------
 # Upload
-# ----------------------------
-uploaded_file = st.file_uploader(
-    "📤 Upload an Image",
-    type=["jpg", "jpeg", "png"]
+# -----------------------------------
+
+uploaded = st.file_uploader(
+"📂 Upload Image",
+type=["jpg","jpeg","png"]
 )
 
-if uploaded_file:
+if uploaded:
 
-    image = Image.open(uploaded_file).convert("RGB")
+    image = Image.open(uploaded).convert("RGB")
 
-    st.image(
-        image,
-        caption="Uploaded Image",
-        use_container_width=True
-    )
+    img=image.resize((IMG_SIZE,IMG_SIZE))
+    img=np.array(img,dtype=np.float32)/255.0
+    img=img.flatten().reshape(1,-1)
 
-    # ----------------------------
-    # Preprocessing
-    # ----------------------------
-    img = image.resize((IMG_SIZE, IMG_SIZE))
-    img = np.array(img, dtype=np.float32)
-    img = img / 255.0
-    img = img.flatten()
-    img = img.reshape(1, -1)
+    prediction=model.predict(img)[0]
+    probability=model.predict_proba(img)[0]
 
-    # ----------------------------
-    # Prediction
-    # ----------------------------
-    prediction = model.predict(img)[0]
-    probability = model.predict_proba(img)[0]
+    male=float(probability[0])
+    female=float(probability[1])
 
-    st.divider()
+    col1,col2=st.columns([1.2,1])
 
-    st.subheader("Prediction")
+    # --------------------------
+    # LEFT
+    # --------------------------
 
-    if prediction == 0:
-        st.success("👨 Male")
-    else:
-        st.success("👩 Female")
+    with col1:
 
-    st.subheader("Confidence")
+        st.image(
+            image,
+            caption="Uploaded Image",
+            use_container_width=True
+        )
 
-    male = float(probability[0])
-    female = float(probability[1])
+    # --------------------------
+    # RIGHT
+    # --------------------------
 
-    st.write(f"👨 Male : **{male*100:.2f}%**")
-    st.progress(male)
+    with col2:
 
-    st.write(f"👩 Female : **{female*100:.2f}%**")
-    st.progress(female)
+        st.markdown("## 🎯 Prediction")
+
+        if prediction==0:
+
+            st.success("## 👨 MALE")
+
+            confidence=male
+
+        else:
+
+            st.success("## 👩 FEMALE")
+
+            confidence=female
+
+        st.metric(
+            label="Model Confidence",
+            value=f"{confidence*100:.2f}%"
+        )
+
+        st.markdown("---")
+
+        st.write("### 📊 Probability")
+
+        st.write(f"👨 Male : **{male*100:.2f}%**")
+
+        st.progress(male)
+
+        st.write(f"👩 Female : **{female*100:.2f}%**")
+
+        st.progress(female)
+
+    st.balloons()
 
     st.divider()
 
     st.info(
-        "⚠️ This project is built for educational purposes using Logistic Regression. "
-        "Predictions may not always be accurate."
+        "⚠️ This project demonstrates image classification using Logistic Regression. "
+        "Predictions may vary depending on the dataset used for training."
     )
 
-# ----------------------------
+# -----------------------------------
 # Footer
-# ----------------------------
-st.markdown(
-"""
+# -----------------------------------
+
+st.markdown("""
 <div class="footer">
 
-Made with ❤️ using Streamlit & Scikit-Learn
+Made with ❤️ using Streamlit | Scikit-Learn | Python
 
 </div>
-""",
-unsafe_allow_html=True)
-
-
-    
+""", unsafe_allow_html=True)
