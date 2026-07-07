@@ -16,7 +16,7 @@ import joblib
 # -------------------------------------------------
 
 st.set_page_config(
-    page_title="AI Vision",
+    page_title="Male Vs Female Classifier",
     page_icon="🤖",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -190,7 +190,7 @@ background:linear-gradient(to right,#06b6d4,#8b5cf6);
 st.markdown(
 """
 <div class='title'>
-🤖 AI Vision
+👤 Male vs Female Classifier
 </div>
 """,
 unsafe_allow_html=True
@@ -199,7 +199,7 @@ unsafe_allow_html=True
 st.markdown(
 """
 <div class='subtitle'>
-Male vs Female Face Classification using Machine Learning
+Upload a face image and let the model predict whether it is Male or Female.
 </div>
 """,
 unsafe_allow_html=True
@@ -547,7 +547,7 @@ background:#111827;
 border:1px solid #334155;">
 
 <h3 style="color:#38bdf8;">
-🤖 AI Vision
+👤 Male vs Female Classifier
 </h3>
 
 <p style="color:#cbd5e1;font-size:18px;">
