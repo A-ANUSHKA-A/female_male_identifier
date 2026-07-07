@@ -11,56 +11,141 @@ import numpy as np
 from PIL import Image
 import joblib
 
-# -----------------------------------
-# Page Configuration
-# -----------------------------------
+# -------------------------------------------------
+# PAGE CONFIG
+# -------------------------------------------------
 
 st.set_page_config(
-    page_title="Male vs Female Classifier",
+    page_title="AI Vision",
     page_icon="🤖",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# -----------------------------------
-# Custom CSS
-# -----------------------------------
+# -------------------------------------------------
+# LOAD MODEL
+# -------------------------------------------------
+
+model = joblib.load("male_female_model.pkl")
+
+IMG_SIZE = 64
+
+# -------------------------------------------------
+# CUSTOM CSS
+# -------------------------------------------------
 
 st.markdown("""
 <style>
 
-html, body, [class*="css"]{
-    font-family: 'Segoe UI';
+#MainMenu{
+visibility:hidden;
+}
+
+footer{
+visibility:hidden;
+}
+
+header{
+visibility:hidden;
 }
 
 .main{
-    background:#0E1117;
+
+background:#0f172a;
+
+}
+
+.block-container{
+
+padding-top:2rem;
+
+padding-left:4rem;
+
+padding-right:4rem;
+
+padding-bottom:2rem;
+
 }
 
 .title{
-    text-align:center;
-    font-size:55px;
-    font-weight:800;
-    background: linear-gradient(90deg,#00DBDE,#FC00FF);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
+
+font-size:58px;
+
+font-weight:800;
+
+text-align:center;
+
+background:linear-gradient(90deg,#00F5FF,#7B2FF7,#FF00E5);
+
+-webkit-background-clip:text;
+
+-webkit-text-fill-color:transparent;
+
+margin-bottom:0px;
+
 }
 
 .subtitle{
-    text-align:center;
-    color:#BFBFBF;
-    font-size:20px;
-    margin-bottom:25px;
+
+text-align:center;
+
+font-size:20px;
+
+color:#cbd5e1;
+
+margin-top:-10px;
+
+margin-bottom:35px;
+
 }
 
-.card{
-
-background:#1A1D24;
+.uploadBox{
 
 padding:25px;
 
+border-radius:18px;
+
+background:#1e293b;
+
+border:1px solid #334155;
+
+}
+
+.predictionCard{
+
+background:#1e293b;
+
+padding:30px;
+
 border-radius:20px;
 
-box-shadow:0px 0px 15px rgba(255,255,255,0.08);
+border:1px solid #334155;
+
+box-shadow:0px 0px 25px rgba(0,255,255,0.08);
+
+}
+
+.infoCard{
+
+background:#172554;
+
+padding:18px;
+
+border-radius:15px;
+
+border-left:5px solid cyan;
+
+}
+
+.metricCard{
+
+background:#111827;
+
+padding:18px;
+
+border-radius:18px;
+
+text-align:center;
 
 }
 
@@ -68,94 +153,99 @@ box-shadow:0px 0px 15px rgba(255,255,255,0.08);
 
 text-align:center;
 
-margin-top:50px;
+margin-top:60px;
+
+font-size:15px;
 
 color:gray;
 
-font-size:15px;
+}
+
+div[data-testid="stMetric"]{
+
+background:#111827;
+
+padding:18px;
+
+border-radius:15px;
+
+border:1px solid #334155;
+
+}
+
+.stProgress>div>div{
+
+background:linear-gradient(to right,#06b6d4,#8b5cf6);
 
 }
 
 </style>
-""", unsafe_allow_html=True)
 
-# -----------------------------------
-# Sidebar
-# -----------------------------------
+""",unsafe_allow_html=True)
 
-st.sidebar.title("📌 Project Information")
-
-st.sidebar.markdown("""
-### 👤 Male vs Female Classifier
-
-**Algorithm**
-- Logistic Regression
-
-**Libraries**
-- Streamlit
-- NumPy
-- Pillow
-- Scikit-Learn
-- Joblib
-
-**Image Size**
-64 × 64
-
----
-
-Built as part of my Machine Learning Summer Training 🚀
-""")
-
-# -----------------------------------
-# Load Model
-# -----------------------------------
-
-model = joblib.load("male_female_model.pkl")
-
-IMG_SIZE = 64
-
-# -----------------------------------
-# Header
-# -----------------------------------
-
-st.markdown('<div class="title">🤖 Male vs Female Classifier</div>',
-unsafe_allow_html=True)
+# -------------------------------------------------
+# HEADER
+# -------------------------------------------------
 
 st.markdown(
-'<div class="subtitle">Upload an image and let Machine Learning make a prediction.</div>',
+"""
+<div class='title'>
+🤖 AI Vision
+</div>
+""",
+unsafe_allow_html=True
+)
+
+st.markdown(
+"""
+<div class='subtitle'>
+Male vs Female Face Classification using Machine Learning
+</div>
+""",
 unsafe_allow_html=True
 )
 
 st.divider()
 
-# -----------------------------------
-# Upload
-# -----------------------------------
+# -------------------------------------------------
+# PROJECT INFO
+# -------------------------------------------------
 
-uploaded = st.file_uploader(
-"📂 Upload Image",
+with st.expander("📌 About this Project"):
+
+    st.markdown("""
+### Technology Used
+
+- 🧠 Logistic Regression
+- 🌐 Streamlit
+- 🖼 Pillow
+- 🔢 NumPy
+- 💾 Joblib
+
+---
+
+This project demonstrates image classification using Machine Learning.
+
+The uploaded image is resized to **64 × 64**, converted into numerical features, and passed to a trained Logistic Regression model for prediction.
+""")
+
+# -------------------------------------------------
+# FILE UPLOADER
+# -------------------------------------------------
+
+uploaded_file = st.file_uploader(
+
+"📤 Upload a Face Image",
+
 type=["jpg","jpeg","png"]
+
 )
 
-if uploaded:
+if uploaded_file is not None:
 
-    image = Image.open(uploaded).convert("RGB")
+    image = Image.open(uploaded_file).convert("RGB")
 
-    img=image.resize((IMG_SIZE,IMG_SIZE))
-    img=np.array(img,dtype=np.float32)/255.0
-    img=img.flatten().reshape(1,-1)
-
-    prediction=model.predict(img)[0]
-    probability=model.predict_proba(img)[0]
-
-    male=float(probability[0])
-    female=float(probability[1])
-
-    col1,col2=st.columns([1.2,1])
-
-    # --------------------------
-    # LEFT
-    # --------------------------
+    col1,col2 = st.columns([1.2,1])
 
     with col1:
 
@@ -165,60 +255,316 @@ if uploaded:
             use_container_width=True
         )
 
-    # --------------------------
-    # RIGHT
-    # --------------------------
-
     with col2:
 
         st.markdown("## 🎯 Prediction")
 
-        if prediction==0:
+        st.info("Processing Image...")
 
-            st.success("## 👨 MALE")
+        # Image Preprocessing
 
-            confidence=male
+        img = image.resize((IMG_SIZE,IMG_SIZE))
+
+        img = np.array(img,dtype=np.float32)
+
+        img = img/255.0
+
+        img = img.flatten()
+
+        img = img.reshape(1,-1)
+# --------------------------------------------
+        # Prediction
+        # --------------------------------------------
+
+        prediction = model.predict(img)[0]
+
+        probability = model.predict_proba(img)[0]
+
+        male_prob = float(probability[0])
+
+        female_prob = float(probability[1])
+
+        confidence = max(male_prob, female_prob)
+
+        st.toast("Prediction Completed 🎉")
+
+        st.balloons()
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # --------------------------------------------
+        # Prediction Card
+        # --------------------------------------------
+
+        if prediction == 0:
+
+            st.markdown(
+                """
+                <div class='predictionCard'>
+
+                <h1 style='text-align:center;color:#38bdf8;'>
+
+                👨 MALE
+
+                </h1>
+
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
         else:
 
-            st.success("## 👩 FEMALE")
+            st.markdown(
+                """
+                <div class='predictionCard'>
 
-            confidence=female
+                <h1 style='text-align:center;color:#ec4899;'>
 
-        st.metric(
-            label="Model Confidence",
-            value=f"{confidence*100:.2f}%"
-        )
+                👩 FEMALE
+
+                </h1>
+
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # --------------------------------------------
+        # Metrics
+        # --------------------------------------------
+
+        metric1, metric2 = st.columns(2)
+
+        with metric1:
+
+            st.metric(
+
+                "Prediction",
+
+                "👨 Male" if prediction == 0 else "👩 Female"
+
+            )
+
+        with metric2:
+
+            st.metric(
+
+                "Confidence",
+
+                f"{confidence*100:.2f}%"
+
+            )
 
         st.markdown("---")
 
-        st.write("### 📊 Probability")
+        # --------------------------------------------
+        # Confidence Bars
+        # --------------------------------------------
 
-        st.write(f"👨 Male : **{male*100:.2f}%**")
+        st.subheader("📊 Confidence Score")
 
-        st.progress(male)
+        st.write(f"👨 Male : **{male_prob*100:.2f}%**")
 
-        st.write(f"👩 Female : **{female*100:.2f}%**")
+        st.progress(male_prob)
 
-        st.progress(female)
+        st.write("")
 
-    st.balloons()
+        st.write(f"👩 Female : **{female_prob*100:.2f}%**")
 
-    st.divider()
+        st.progress(female_prob)
 
-    st.info(
-        "⚠️ This project demonstrates image classification using Logistic Regression. "
-        "Predictions may vary depending on the dataset used for training."
-    )
+        st.markdown("---")
 
-# -----------------------------------
-# Footer
-# -----------------------------------
+        # --------------------------------------------
+        # Result Message
+        # --------------------------------------------
 
-st.markdown("""
-<div class="footer">
+        if confidence > 0.90:
 
-Made with ❤️ using Streamlit | Scikit-Learn | Python
+            st.success(
+                "The model is highly confident about this prediction."
+            )
+
+        elif confidence > 0.70:
+
+            st.info(
+                "The prediction confidence is reasonably high."
+            )
+
+        else:
+
+            st.warning(
+                "The confidence is low. This may happen if the uploaded image "
+                "is blurry, has poor lighting, or differs from the training data."
+            )
+
+        # --------------------------------------------
+        # Probability Table
+        # --------------------------------------------
+
+        st.subheader("📋 Prediction Summary")
+
+        st.dataframe(
+
+            {
+                "Class": ["Male", "Female"],
+                "Probability": [
+                    f"{male_prob*100:.2f} %",
+                    f"{female_prob*100:.2f} %"
+                ]
+            },
+
+            use_container_width=True,
+            hide_index=True
+
+        )
+# -------------------------------------------------
+# MODEL DETAILS
+# -------------------------------------------------
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+st.subheader("📌 Model Information")
+
+info1, info2, info3 = st.columns(3)
+
+with info1:
+    st.info("""
+### 🧠 Algorithm
+
+Logistic Regression
+""")
+
+with info2:
+    st.info("""
+### 🖼 Image Size
+
+64 × 64 Pixels
+""")
+
+with info3:
+    st.info("""
+### 📂 Classes
+
+Male
+
+Female
+""")
+
+st.markdown("---")
+
+# -------------------------------------------------
+# TECH STACK
+# -------------------------------------------------
+
+st.subheader("⚙️ Tech Stack")
+
+c1, c2, c3 = st.columns(3)
+
+with c1:
+    st.success("🐍 Python")
+
+with c2:
+    st.success("🧠 Scikit-Learn")
+
+with c3:
+    st.success("🌐 Streamlit")
+
+c4, c5, c6 = st.columns(3)
+
+with c4:
+    st.success("📊 NumPy")
+
+with c5:
+    st.success("🖼 Pillow")
+
+with c6:
+    st.success("💾 Joblib")
+
+st.markdown("---")
+
+# -------------------------------------------------
+# DISCLAIMER
+# -------------------------------------------------
+
+st.warning(
+"""
+### ⚠️ Disclaimer
+
+This application is built for educational purposes.
+
+The model is trained on a limited dataset using **Logistic Regression**, so predictions may not always be accurate or generalize well to all images.
+"""
+)
+
+# -------------------------------------------------
+# PROJECT HIGHLIGHTS
+# -------------------------------------------------
+
+with st.expander("🚀 What happens behind the scenes?"):
+
+    st.markdown("""
+### Workflow
+
+1️⃣ Upload Image
+
+⬇
+
+2️⃣ Resize to **64 × 64**
+
+⬇
+
+3️⃣ Convert Image into Numerical Features
+
+⬇
+
+4️⃣ Logistic Regression Model
+
+⬇
+
+5️⃣ Predict Male / Female
+
+⬇
+
+6️⃣ Display Confidence Scores
+""")
+
+# -------------------------------------------------
+# FOOTER
+# -------------------------------------------------
+
+st.markdown("<br><br>", unsafe_allow_html=True)
+
+st.markdown(
+"""
+<div style="text-align:center;
+padding:25px;
+border-radius:18px;
+background:#111827;
+border:1px solid #334155;">
+
+<h3 style="color:#38bdf8;">
+🤖 AI Vision
+</h3>
+
+<p style="color:#cbd5e1;font-size:18px;">
+Male vs Female Face Classification
+</p>
+
+<hr>
+
+<p style="color:gray;">
+Developed by ANUSHKA ⭐ using Python • Streamlit • Scikit-Learn
+</p>
+
+<p style="color:gray;">
+Summer Training Project 2026
+</p>
 
 </div>
-""", unsafe_allow_html=True)
+""",
+unsafe_allow_html=True
+)        
